@@ -67,18 +67,13 @@ int LTexture::getHeight()
 
 void LTexture::render(int x, int y, SDL_Rect *source, double angle)
 {
-	SDL_Rect dest;
-	dest.x = x;
-	dest.y = y;
-	if(source == NULL)
-	{
-		dest.w = width;
-		dest.h = height;
-	}
-	else
+	SDL_Rect dest{x - width / 2, y - height / 2, width, height};
+	if(source != NULL)
 	{
 		dest.w = source->w;
 		dest.h = source->h;
+		dest.x -= dest.w / 2;
+		dest.y -= dest.h / 2;
 	}
 
 	SDL_RenderCopyEx(gRenderer, texture, source, &dest, angle, NULL, SDL_FLIP_NONE);

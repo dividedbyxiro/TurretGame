@@ -8,9 +8,9 @@ class Turret
         Turret();
         virtual ~Turret();
         void move();
-        void setStopped(bool instruction);
+        void stop();
+        void start();
         void setPosition(int x, int y);
-        int getHealth();
         int getXPos();
         int getYPos();
         int getAngle();
@@ -21,7 +21,6 @@ class Turret
 
     private:
         int angle;
-        int health;
         int xPos;
         int yPos;
         int direction;

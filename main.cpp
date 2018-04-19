@@ -1,31 +1,37 @@
 #include "LTexture.h"
 #include "Turret.h"
 #include "Bullet.h"
+#include "Enemy.h"
 #include <stdio.h>
 #include <string>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <vector>
 #include <math.h>
+#include <cstdlib>
 
 using namespace std;
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
+#define MAX_BULLETS 30
+#define MAX_ENEMIES 10
 
-double fireRate = 500;
-int bulletSpeed = 10;
-double gGunTimer = 0;
+int fireRate = 100; //milliseconds between shots. lower number is faster
+int bulletSpeed = 8; //pixels per click. higher number is faster
+int gGunTimer = 0; //timer for firing gun. starts at 0
 
 SDL_Window *gWindow = NULL;
 SDL_Renderer *gRenderer = NULL;
 
 LTexture gTurretTexture;
 LTexture gBulletTexture;
+LTexture gEnemyTexture;
 
 Turret gTurret;
-
-Bullet bullets[30];
+Bullet bullets[MAX_BULLETS];
+Enemy enemies[MAX_ENEMIES];
+int enemyCount = 1;
 
 bool init();
 bool loadMedia();
@@ -35,6 +41,7 @@ void createElements();
 bool handleInput(SDL_Event *e);
 void update();
 void render();
+void generateNewEnemy(int index);
 
 int main(int argc, char *argv[])
 {
@@ -71,11 +78,12 @@ int main(int argc, char *argv[])
 				quit = true;
 			}
 		}
-		printf("finished handling input %d\n", SDL_GetTicks());
+//		printf("finished handling input %d\n", SDL_GetTicks());
 		update();
-		printf("finished updating state %d\n", SDL_GetTicks());
+//		printf("finished updating state %d\n", SDL_GetTicks());
 		render();
-		printf("finished render %d\n", SDL_GetTicks());
+//		printf("turret position %d, %d angle %d\n", gTurret.getXPos(), gTurret.getYPos(), gTurret.getAngle());
+//		printf("finished render %d\n", SDL_GetTicks());
 	}
 
 	close();
@@ -114,6 +122,7 @@ bool init()
 		printf("createRenderer failed %s\n", SDL_GetError());
 		return false;
 	}
+	srand(SDL_GetTicks());
 
 	return true;
 }
@@ -130,6 +139,11 @@ bool loadMedia()
 		printf("failed to load bullet texture\n");
 		return false;
 	}
+	if(!gEnemyTexture.loadFromFile("assets/piskel enemy.png"))
+	{
+		printf("failed to load enemy texture\n");
+		return false;
+	}
 
 	return true;
 }
@@ -138,6 +152,7 @@ void close()
 {
 	gTurretTexture.free();
 	gBulletTexture.free();
+	gEnemyTexture.free();
 	SDL_DestroyWindow(gWindow);
 	SDL_DestroyRenderer(gRenderer);
 	gWindow = NULL;
@@ -148,10 +163,14 @@ void close()
 
 void createElements()
 {
-    gTurret.setPosition((SCREEN_WIDTH - gTurret.getWidth()) / 2, (SCREEN_HEIGHT - gTurret.getHeight()) / 2);
-    gTurret.setStopped(false);
+	gTurret.setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+//    gTurret.setPosition(0, 0);
+    gTurret.start();
+
 
     gGunTimer = SDL_GetTicks();
+
+    generateNewEnemy(0);
 }
 
 bool handleInput(SDL_Event *e)
@@ -165,7 +184,8 @@ bool handleInput(SDL_Event *e)
 		switch(e->key.keysym.sym)
 		{
 			case SDLK_SPACE:
-				gTurret.setStopped(true);
+				printf("pressed space\n");
+				gTurret.stop();
 				break;
 			case SDLK_ESCAPE:
 				return true;
@@ -176,7 +196,8 @@ bool handleInput(SDL_Event *e)
 		switch(e->key.keysym.sym)
 		{
 			case SDLK_SPACE:
-				gTurret.setStopped(false);
+				printf("released space\n");
+				gTurret.start();
 				break;
 		}
 	}
@@ -186,32 +207,65 @@ bool handleInput(SDL_Event *e)
 
 void update()
 {
+	int createNewEnemy = -1;
 	int currentTime = SDL_GetTicks();
 
 	gTurret.move();
 
-	for(int i = 0; i < 30; i++)
+	for(int i = 0; i < MAX_BULLETS; i++)
 	{
 		bullets[i].move();
 	}
 
-	if(currentTime >= gGunTimer + fireRate)
+	for(int i = 0; i < MAX_ENEMIES; i++)
 	{
-		printf("    time to fire\n");
-		gGunTimer = currentTime;
-		for(int i = 0; i < 30; i++)
+		enemies[i].move();
+		for(int j = 0; j < MAX_BULLETS; j++)
 		{
-			if(!bullets[i].getAlive())
+			if(enemies[i].getXPos() > bullets[j].getXPos() - 20 && enemies[i].getXPos() < bullets[j].getXPos() + 20 &&
+				enemies[i].getYPos() > bullets[j].getYPos() - 20 && enemies[i].getYPos() < bullets[j].getYPos() + 20)
 			{
-				double yVel = sin((gTurret.getAngle() - 90) * 3.1416 / 180) * bulletSpeed;
-				double xVel = cos((gTurret.getAngle() - 90) * 3.1416 / 180) * bulletSpeed;
-				bullets[i].setPosition(SCREEN_WIDTH / 2 - 5, SCREEN_HEIGHT / 2 - 5);
-				bullets[i].setVelocity(xVel, yVel);
-				bullets[i].setAlive(true);
+				if(enemies[i].damage(1))
+				{
+					createNewEnemy = i;
+				}
+				bullets[j].kill();
 				break;
 			}
 		}
 	}
+
+	if(createNewEnemy != -1)
+	{
+		generateNewEnemy(createNewEnemy);
+		if(rand()%5 == 0 && enemyCount < MAX_ENEMIES)
+		{
+			generateNewEnemy(enemyCount++);
+		}
+	}
+
+	if(currentTime >= gGunTimer + fireRate)
+	{
+//		printf("    time to fire\n");
+		gGunTimer = currentTime;
+		for(int i = 0; i < MAX_BULLETS; i++)
+		{
+			if(!bullets[i].getAlive())
+			{
+				double newAngle = gTurret.getAngle() - 5 + 10 * (float)rand() / (float)RAND_MAX;
+				double yVel = sin((newAngle - 90) * 3.1416 / 180) * bulletSpeed;
+				double xVel = cos((newAngle - 90) * 3.1416 / 180) * bulletSpeed;
+				bullets[i].setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+				bullets[i].setVelocity(xVel, yVel);
+				bullets[i].setAlive(true);
+//				bullets[i].move();
+				break;
+			}
+		}
+	}
+
+
+
 }
 
 void render()
@@ -220,8 +274,15 @@ void render()
     SDL_RenderClear(gRenderer);
 
 
+	for(int i = 0; i < MAX_ENEMIES; i++)
+	{
+		if(enemies[i].getAlive())
+		{
+			gEnemyTexture.render(enemies[i].getXPos(), enemies[i].getYPos(), NULL, 0);
+		}
+	}
 
-    for(int i = 0; i < 30; i++)
+    for(int i = 0; i < MAX_BULLETS; i++)
 	{
 		if(bullets[i].getAlive())
 		{
@@ -230,5 +291,35 @@ void render()
 	}
 	gTurretTexture.render(gTurret.getXPos(), gTurret.getYPos(), NULL, gTurret.getAngle());
 
+
+
     SDL_RenderPresent(gRenderer);
+}
+
+void generateNewEnemy(int index)
+{
+	if(index < 0 || index >= MAX_ENEMIES)
+	{
+		return;
+	}
+
+	int wall = rand() % 4;
+    int location = rand() % 9 + 1;
+    switch(wall)
+    {
+		case 0: //north wall
+			enemies[index].setPosition(SCREEN_WIDTH * (float)location / 10, 40);
+			break;
+		case 1: //east wall
+			enemies[index].setPosition(SCREEN_WIDTH - 40, SCREEN_HEIGHT * (float)location / 10);
+			break;
+		case 2: //south wall
+			enemies[index].setPosition(SCREEN_WIDTH * (float)location / 10, SCREEN_HEIGHT - 40);
+			break;
+		case 3: //west wall
+			enemies[index].setPosition(40, SCREEN_HEIGHT * (float)location / 10);
+			break;
+	}
+	enemies[index].setAlive();
+	enemies[index].setVelocity((gTurret.getXPos() - enemies[index].getXPos()) / 300, (gTurret.getYPos() - enemies[index].getYPos()) / 300);
 }

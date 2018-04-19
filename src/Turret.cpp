@@ -3,13 +3,12 @@
 Turret::Turret()
 {
 	angle = 0;
-	health = 10;
 	xPos = 0;
 	yPos = 0;
 	width = 32;
 	height = 32;
 	stopped = false;
-	direction = 1;
+	direction = 2;
     //ctor
 }
 
@@ -27,24 +26,25 @@ void Turret::move()
 	}
 }
 
-void Turret::setStopped(bool instruction)
+void Turret::stop()
 {
-	stopped = instruction;
-	if(stopped == true)
+	if(stopped)
 	{
-		direction *= -1;
+		return;
 	}
+	stopped = true;
+	direction *= -1;
+}
+
+void Turret::start()
+{
+	stopped = false;
 }
 
 void Turret::setPosition(int x, int y)
 {
 	xPos = x;
 	yPos = y;
-}
-
-int Turret::getHealth()
-{
-	return health;
 }
 
 int Turret::getAngle()
