@@ -32,6 +32,7 @@ void LTexture::free()
 
 bool LTexture::loadFromFile(std::string path)
 {
+	free();
     SDL_Surface *loadedSurface = NULL;
     SDL_Texture *loadedTexture = NULL;
     loadedSurface = IMG_Load(path.c_str());
@@ -45,6 +46,32 @@ bool LTexture::loadFromFile(std::string path)
     if(loadedTexture == NULL)
     {
         printf("failed to create texture %s error %s\n", path.c_str(), SDL_GetError());
+        SDL_FreeSurface(loadedSurface);
+        return false;
+    }
+    width = loadedSurface->w;
+    height = loadedSurface->h;
+    SDL_FreeSurface(loadedSurface);
+    texture = loadedTexture;
+    return true;
+}
+
+bool LTexture::loadFromRenderedText(TTF_Font *font, std::string text, SDL_Color *color)
+{
+	free();
+	SDL_Surface *loadedSurface = NULL;
+    SDL_Texture *loadedTexture = NULL;
+    loadedSurface = TTF_RenderText_Solid(font, text.c_str(), *color);
+    if(loadedSurface == NULL)
+    {
+        printf("failed to load %s error %s\n", text.c_str(), IMG_GetError());
+        return false;
+    }
+
+    loadedTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
+    if(loadedTexture == NULL)
+    {
+        printf("failed to create texture %s error %s\n", text.c_str(), SDL_GetError());
         SDL_FreeSurface(loadedSurface);
         return false;
     }

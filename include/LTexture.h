@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 #include <string>
+#include <SDL_ttf.h>
 
 
 class LTexture
@@ -12,6 +13,7 @@ class LTexture
         virtual ~LTexture();
         void free();
         bool loadFromFile(std::string path);
+        bool loadFromRenderedText(TTF_Font *font, std::string text, SDL_Color *color);
         void render(int x, int y, SDL_Rect *source, double angle);
         void render(SDL_Rect *source,  SDL_Rect *dest, double angle);
         int getWidth();
