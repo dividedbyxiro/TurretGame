@@ -32,6 +32,7 @@ Turret gTurret;
 Bullet bullets[MAX_BULLETS];
 Enemy enemies[MAX_ENEMIES];
 int enemyCount = 1;
+int damaged = 0; //ticks since last damage, controls the yellow flash
 
 bool init();
 bool loadMedia();
@@ -122,7 +123,9 @@ bool init()
 		printf("createRenderer failed %s\n", SDL_GetError());
 		return false;
 	}
-	srand(SDL_GetTicks());
+	SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
+
+
 
 	return true;
 }
@@ -170,6 +173,7 @@ void createElements()
 
     gGunTimer = SDL_GetTicks();
 
+	srand(SDL_GetTicks());
     generateNewEnemy(0);
 }
 
@@ -184,7 +188,7 @@ bool handleInput(SDL_Event *e)
 		switch(e->key.keysym.sym)
 		{
 			case SDLK_SPACE:
-				printf("pressed space\n");
+//				printf("pressed space\n");
 				gTurret.stop();
 				break;
 			case SDLK_ESCAPE:
@@ -196,7 +200,7 @@ bool handleInput(SDL_Event *e)
 		switch(e->key.keysym.sym)
 		{
 			case SDLK_SPACE:
-				printf("released space\n");
+//				printf("released space\n");
 				gTurret.start();
 				break;
 		}
@@ -219,11 +223,27 @@ void update()
 
 	for(int i = 0; i < MAX_ENEMIES; i++)
 	{
+		if(!enemies[i].getAlive())
+		{
+			continue;
+		}
 		enemies[i].move();
+		if((gTurret.getXPos() - enemies[i].getXPos()) * (gTurret.getXPos() - enemies[i].getXPos()) + (gTurret.getYPos() - enemies[i].getYPos()) * (gTurret.getYPos() - enemies[i].getYPos()) <= 1500)
+		{
+			printf("enemy reached turret\n");
+			damaged = 50;
+			generateNewEnemy(i);
+			continue;
+		}
 		for(int j = 0; j < MAX_BULLETS; j++)
 		{
-			if(enemies[i].getXPos() > bullets[j].getXPos() - 20 && enemies[i].getXPos() < bullets[j].getXPos() + 20 &&
-				enemies[i].getYPos() > bullets[j].getYPos() - 20 && enemies[i].getYPos() < bullets[j].getYPos() + 20)
+			if(!bullets[j].getAlive())
+			{
+				continue;
+			}
+//			if(enemies[i].getXPos() > bullets[j].getXPos() - 25 && enemies[i].getXPos() < bullets[j].getXPos() + 25 &&
+//				enemies[i].getYPos() > bullets[j].getYPos() - 25 && enemies[i].getYPos() < bullets[j].getYPos() + 25)
+			if((bullets[j].getXPos() - enemies[i].getXPos()) * (bullets[j].getXPos() - enemies[i].getXPos()) + (bullets[j].getYPos() - enemies[i].getYPos()) * (bullets[j].getYPos() - enemies[i].getYPos()) <= 1000)
 			{
 				if(enemies[i].damage(1))
 				{
@@ -263,6 +283,10 @@ void update()
 			}
 		}
 	}
+	if(damaged > 0)
+	{
+		damaged--;
+	}
 
 
 
@@ -291,7 +315,15 @@ void render()
 	}
 	gTurretTexture.render(gTurret.getXPos(), gTurret.getYPos(), NULL, gTurret.getAngle());
 
-
+	if(damaged > 0)
+	{
+		printf("damaged, drawing flash\n");
+		int colorIntensity = 255.0 * damaged / 50.0;
+		SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, (int)(255.0 * damaged / 50.0));
+//		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+		SDL_RenderFillRect(gRenderer, NULL);
+		SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 255);
+	}
 
     SDL_RenderPresent(gRenderer);
 }
