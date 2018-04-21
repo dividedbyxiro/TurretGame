@@ -27,12 +27,17 @@ SDL_Renderer *gRenderer = NULL;
 LTexture gTurretTexture;
 LTexture gBulletTexture;
 LTexture gEnemyTexture;
+LTexture gBoxTexture;
+LTexture gEnergyTexture;
+LTexture gHalfEnergyTexture;
 
 Turret gTurret;
 Bullet bullets[MAX_BULLETS];
 Enemy enemies[MAX_ENEMIES];
 int enemyCount = 1;
 int damaged = 0; //ticks since last damage, controls the yellow flash
+int health = 10;
+int score = 0;
 
 bool init();
 bool loadMedia();
@@ -43,6 +48,7 @@ bool handleInput(SDL_Event *e);
 void update();
 void render();
 void generateNewEnemy(int index);
+void renderHud();
 
 int main(int argc, char *argv[])
 {
@@ -85,10 +91,15 @@ int main(int argc, char *argv[])
 		render();
 //		printf("turret position %d, %d angle %d\n", gTurret.getXPos(), gTurret.getYPos(), gTurret.getAngle());
 //		printf("finished render %d\n", SDL_GetTicks());
+		if(health == 0)
+		{
+			quit = true;
+		}
 	}
 
 	close();
 	printf("thanks for playing\n");
+	printf("You earned %d points\n", score);
 	return 0;
 }
 
@@ -99,10 +110,10 @@ bool init()
 		printf("sdl init failed %s\n", SDL_GetError());
 		return false;
 	}
-	if(!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
-	{
-		printf("warning linear filtering not set\n");
-	}
+//	if(!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
+//	{
+//		printf("warning linear filtering not set\n");
+//	}
 
 	if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG)
 	{
@@ -147,6 +158,21 @@ bool loadMedia()
 		printf("failed to load enemy texture\n");
 		return false;
 	}
+	if(!gBoxTexture.loadFromFile("assets/piskel box.png"))
+	{
+		printf("failed to load box texture\n");
+		return false;
+	}
+	if(!gEnergyTexture.loadFromFile("assets/piskel energy.png"))
+	{
+		printf("failed to load energy texture\n");
+		return false;
+	}
+	if(!gHalfEnergyTexture.loadFromFile("assets/piskel half energy.png"))
+	{
+		printf("failed to load half energy texture\n");
+		return false;
+	}
 
 	return true;
 }
@@ -156,6 +182,8 @@ void close()
 	gTurretTexture.free();
 	gBulletTexture.free();
 	gEnemyTexture.free();
+	gBoxTexture.free();
+	gEnergyTexture.free();
 	SDL_DestroyWindow(gWindow);
 	SDL_DestroyRenderer(gRenderer);
 	gWindow = NULL;
@@ -231,6 +259,7 @@ void update()
 		if((gTurret.getXPos() - enemies[i].getXPos()) * (gTurret.getXPos() - enemies[i].getXPos()) + (gTurret.getYPos() - enemies[i].getYPos()) * (gTurret.getYPos() - enemies[i].getYPos()) <= 1500)
 		{
 			printf("enemy reached turret\n");
+			health--;
 			damaged = 50;
 			generateNewEnemy(i);
 			continue;
@@ -245,8 +274,9 @@ void update()
 //				enemies[i].getYPos() > bullets[j].getYPos() - 25 && enemies[i].getYPos() < bullets[j].getYPos() + 25)
 			if((bullets[j].getXPos() - enemies[i].getXPos()) * (bullets[j].getXPos() - enemies[i].getXPos()) + (bullets[j].getYPos() - enemies[i].getYPos()) * (bullets[j].getYPos() - enemies[i].getYPos()) <= 1000)
 			{
-				if(enemies[i].damage(1))
+				if(enemies[i].damage(1)) // if enemy hit and killed by bullet
 				{
+					score++;
 					createNewEnemy = i;
 				}
 				bullets[j].kill();
@@ -297,8 +327,7 @@ void render()
 	SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 255);
     SDL_RenderClear(gRenderer);
 
-
-	for(int i = 0; i < MAX_ENEMIES; i++)
+    for(int i = 0; i < MAX_ENEMIES; i++)
 	{
 		if(enemies[i].getAlive())
 		{
@@ -317,13 +346,14 @@ void render()
 
 	if(damaged > 0)
 	{
-		printf("damaged, drawing flash\n");
-		int colorIntensity = 255.0 * damaged / 50.0;
+//		printf("damaged, drawing flash\n");
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, (int)(255.0 * damaged / 50.0));
 //		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 		SDL_RenderFillRect(gRenderer, NULL);
 		SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 255);
 	}
+
+	renderHud();
 
     SDL_RenderPresent(gRenderer);
 }
@@ -354,4 +384,25 @@ void generateNewEnemy(int index)
 	}
 	enemies[index].setAlive();
 	enemies[index].setVelocity((gTurret.getXPos() - enemies[index].getXPos()) / 300, (gTurret.getYPos() - enemies[index].getYPos()) / 300);
+}
+
+void renderHud()
+{
+	SDL_Rect hudLocation{10, 10, 175, 50};
+	SDL_RenderSetViewport(gRenderer, &hudLocation);
+	gBoxTexture.render(NULL, NULL, 0);
+
+	for(int i = 0; i < health / 2; i++)
+	{
+		gEnergyTexture.render(30 + i * 29, 25, NULL, 0);
+	}
+	if(health % 2)
+	{
+		gHalfEnergyTexture.render(30 + health / 2 * 29, 25, NULL, 0);
+	}
+
+	SDL_RenderSetViewport(gRenderer, NULL);
+
+
+
 }

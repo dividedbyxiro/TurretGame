@@ -78,3 +78,16 @@ void LTexture::render(int x, int y, SDL_Rect *source, double angle)
 
 	SDL_RenderCopyEx(gRenderer, texture, source, &dest, angle, NULL, SDL_FLIP_NONE);
 }
+
+void LTexture::render(SDL_Rect *source,  SDL_Rect *dest, double angle)
+{
+//	if(source != NULL)
+//	{
+//		dest.w = source->w;
+//		dest.h = source->h;
+//		dest.x -= dest.w / 2;
+//		dest.y -= dest.h / 2;
+//	}
+
+	SDL_RenderCopyEx(gRenderer, texture, source, dest, angle, NULL, SDL_FLIP_NONE);
+}

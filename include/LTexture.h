@@ -13,6 +13,7 @@ class LTexture
         void free();
         bool loadFromFile(std::string path);
         void render(int x, int y, SDL_Rect *source, double angle);
+        void render(SDL_Rect *source,  SDL_Rect *dest, double angle);
         int getWidth();
         int getHeight();
 
