@@ -6,6 +6,7 @@
 #include <string>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include <vector>
 #include <math.h>
 #include <cstdlib>
@@ -23,6 +24,7 @@ int gGunTimer = 0; //timer for firing gun. starts at 0
 
 SDL_Window *gWindow = NULL;
 SDL_Renderer *gRenderer = NULL;
+TTF_Font *gFont = NULL;
 
 LTexture gTurretTexture;
 LTexture gBulletTexture;
@@ -30,6 +32,7 @@ LTexture gEnemyTexture;
 LTexture gBoxTexture;
 LTexture gEnergyTexture;
 LTexture gHalfEnergyTexture;
+LTexture gScoreTexture;
 
 Turret gTurret;
 Bullet bullets[MAX_BULLETS];
@@ -38,6 +41,7 @@ int enemyCount = 1;
 int damaged = 0; //ticks since last damage, controls the yellow flash
 int health = 10;
 int score = 0;
+SDL_Color scoreColor{255, 255, 255, 255};
 
 bool init();
 bool loadMedia();
@@ -121,6 +125,12 @@ bool init()
 		return false;
 	}
 
+	if(TTF_Init() == -1)
+	{
+		printf("TTF init failed %s\n", TTF_GetError());
+		return false;
+	}
+
 	gWindow = SDL_CreateWindow("Turret game!!!!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if(gWindow == NULL)
 	{
@@ -171,6 +181,19 @@ bool loadMedia()
 	if(!gHalfEnergyTexture.loadFromFile("assets/piskel half energy.png"))
 	{
 		printf("failed to load half energy texture\n");
+		return false;
+	}
+
+	gFont = TTF_OpenFont("assets/xiro.ttf", 28);
+	if(gFont == NULL)
+	{
+		printf("failed to open font %s\n", TTF_GetError());
+		return false;
+	}
+
+	if(!gScoreTexture.loadFromRenderedText(gFont, "0", &scoreColor))
+	{
+		printf("failed to create score texture\n");
 		return false;
 	}
 
@@ -276,8 +299,15 @@ void update()
 			{
 				if(enemies[i].damage(1)) // if enemy hit and killed by bullet
 				{
+					char scoreString[3];
 					score++;
+					sprintf(scoreString, "%d", score);
 					createNewEnemy = i;
+					if(!gScoreTexture.loadFromRenderedText(gFont, scoreString, &scoreColor))
+					{
+						printf("failed to update score texture\n");
+						return;
+					}
 				}
 				bullets[j].kill();
 				break;
@@ -388,8 +418,9 @@ void generateNewEnemy(int index)
 
 void renderHud()
 {
-	SDL_Rect hudLocation{10, 10, 175, 50};
-	SDL_RenderSetViewport(gRenderer, &hudLocation);
+	SDL_Rect healthLocation{10, 10, 175, 50};
+	SDL_Rect scoreLocation{(SCREEN_WIDTH - gScoreTexture.getWidth()) / 2 - 30, 10, gScoreTexture.getWidth() + 60, 50};
+	SDL_RenderSetViewport(gRenderer, &healthLocation);
 	gBoxTexture.render(NULL, NULL, 0);
 
 	for(int i = 0; i < health / 2; i++)
@@ -400,6 +431,12 @@ void renderHud()
 	{
 		gHalfEnergyTexture.render(30 + health / 2 * 29, 25, NULL, 0);
 	}
+
+	SDL_RenderSetViewport(gRenderer, &scoreLocation);
+	gBoxTexture.render(NULL, NULL, 0);
+	gScoreTexture.render(scoreLocation.w / 2, scoreLocation.h / 2, NULL, NULL);
+
+
 
 	SDL_RenderSetViewport(gRenderer, NULL);
 

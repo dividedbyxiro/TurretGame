@@ -361,7 +361,7 @@
 	<vector>
 	<math.h>
 
-1524341972 source:c:\github repositories\turretgame\turretgame\main.cpp
+1524349319 source:c:\github repositories\turretgame\turretgame\main.cpp
 	"LTexture.h"
 	"Turret.h"
 	"Bullet.h"
@@ -370,13 +370,15 @@
 	<string>
 	<SDL.h>
 	<SDL_image.h>
+	<SDL_ttf.h>
 	<vector>
 	<math.h>
 	<cstdlib>
 
-1524340369 c:\github repositories\turretgame\turretgame\include\ltexture.h
+1524348443 c:\github repositories\turretgame\turretgame\include\ltexture.h
 	<SDL.h>
 	<string>
+	<SDL_ttf.h>
 
 1524232592 c:\github repositories\turretgame\turretgame\include\turret.h
 
@@ -390,7 +392,7 @@
 
 1524232592 c:\github repositories\turretgame\turretgame\include\enemy.h
 
-1524340404 source:c:\github repositories\turretgame\turretgame\src\ltexture.cpp
+1524348443 source:c:\github repositories\turretgame\turretgame\src\ltexture.cpp
 	"LTexture.h"
 	<SDL.h>
 	<SDL_image.h>
@@ -438,4 +440,9 @@
 
 1524167254 source:c:\development\github projects\turretgame\src\turret.cpp
 	"Turret.h"
+
+1454366533 c:\mingw_dev_lib\include\sdl2\sdl_ttf.h
+	"SDL.h"
+	"begin_code.h"
+	"close_code.h"
 
