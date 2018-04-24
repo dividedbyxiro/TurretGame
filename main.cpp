@@ -57,6 +57,14 @@ void render();
 void generateNewEnemy(int index);
 void renderHud();
 
+enum GAME_STATE
+{
+	GAME_INTRO_STATE,
+	GAME_PAUSED_STATE,
+	GAME_PLAY_STATE,
+	GAME_OVER_STATE
+};
+
 int main(int argc, char *argv[])
 {
     bool quit = false;
