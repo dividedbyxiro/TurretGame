@@ -7,6 +7,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <SDL_mixer.h>
 #include <vector>
 #include <math.h>
 #include <cstdlib>
@@ -25,6 +26,8 @@ int gGunTimer = 0; //timer for firing gun. starts at 0
 SDL_Window *gWindow = NULL;
 SDL_Renderer *gRenderer = NULL;
 TTF_Font *gFont = NULL;
+Mix_Chunk *gGunSound = NULL;
+Mix_Chunk *gEnemyDeath = NULL;
 
 LTexture gTurretTexture;
 LTexture gBulletTexture;
@@ -131,6 +134,12 @@ bool init()
 		return false;
 	}
 
+	if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+	{
+		printf("mix openaudio failed %s\n", Mix_GetError());
+		return false;
+	}
+
 	gWindow = SDL_CreateWindow("Turret game!!!!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if(gWindow == NULL)
 	{
@@ -197,6 +206,20 @@ bool loadMedia()
 		return false;
 	}
 
+	gGunSound = Mix_LoadWAV("assets/low.wav");
+	if(gGunSound == NULL)
+	{
+		printf("failed to load gun sound %s\n", Mix_GetError());
+		return false;
+	}
+
+	gEnemyDeath = Mix_LoadWAV("assets/boom3.wav");
+	if(gEnemyDeath == NULL)
+	{
+		printf("failed to load enemy death sound %s\n", Mix_GetError());
+		return false;
+	}
+
 	return true;
 }
 
@@ -209,8 +232,13 @@ void close()
 	gEnergyTexture.free();
 	SDL_DestroyWindow(gWindow);
 	SDL_DestroyRenderer(gRenderer);
+	Mix_FreeChunk(gGunSound);
+	Mix_FreeChunk(gEnemyDeath);
+	gEnemyDeath = NULL;
+	gGunSound = NULL;
 	gWindow = NULL;
 	gRenderer = NULL;
+	Mix_Quit();
 	IMG_Quit();
 	SDL_Quit();
 }
@@ -279,9 +307,10 @@ void update()
 			continue;
 		}
 		enemies[i].move();
-		if((gTurret.getXPos() - enemies[i].getXPos()) * (gTurret.getXPos() - enemies[i].getXPos()) + (gTurret.getYPos() - enemies[i].getYPos()) * (gTurret.getYPos() - enemies[i].getYPos()) <= 1500)
+		if((gTurret.getXPos() - enemies[i].getXPos()) * (gTurret.getXPos() - enemies[i].getXPos()) + (gTurret.getYPos() - enemies[i].getYPos()) * (gTurret.getYPos() - enemies[i].getYPos()) <= 1500)	//enemy reaches the player's turret
 		{
 			printf("enemy reached turret\n");
+			Mix_PlayChannel(-1, gEnemyDeath, 0);
 			health--;
 			damaged = 50;
 			generateNewEnemy(i);
@@ -303,6 +332,7 @@ void update()
 					score++;
 					sprintf(scoreString, "%d", score);
 					createNewEnemy = i;
+					Mix_PlayChannel(-1, gEnemyDeath, 0);
 					if(!gScoreTexture.loadFromRenderedText(gFont, scoreString, &scoreColor))
 					{
 						printf("failed to update score texture\n");
@@ -315,7 +345,7 @@ void update()
 		}
 	}
 
-	if(createNewEnemy != -1)
+	if(createNewEnemy != -1)	//Enemy was killed, gotta replace
 	{
 		generateNewEnemy(createNewEnemy);
 		if(rand()%5 == 0 && enemyCount < MAX_ENEMIES)
@@ -324,7 +354,7 @@ void update()
 		}
 	}
 
-	if(currentTime >= gGunTimer + fireRate)
+	if(currentTime >= gGunTimer + fireRate)	//time to fire the gun again
 	{
 //		printf("    time to fire\n");
 		gGunTimer = currentTime;
@@ -339,6 +369,7 @@ void update()
 				bullets[i].setVelocity(xVel, yVel);
 				bullets[i].setAlive(true);
 //				bullets[i].move();
+				Mix_PlayChannel(-1, gGunSound, 0);
 				break;
 			}
 		}
