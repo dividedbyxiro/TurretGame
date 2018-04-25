@@ -235,7 +235,8 @@ bool loadMedia()
 		return false;
 	}
 
-	if(!gTitleTexture.loadFromRenderedText(gFont, "The Turret Button", &titleColor))
+//	if(!gTitleTexture.loadFromRenderedText(gFont, "The Turret Button", &titleColor))
+	if(!gTitleTexture.loadFromFile("assets/dbx logo.png"))
 	{
 		printf("failed to create title texture\n");
 		return false;
