@@ -18,6 +18,17 @@ using namespace std;
 #define SCREEN_HEIGHT 480
 #define MAX_BULLETS 30
 #define MAX_ENEMIES 10
+#define TITLE_SCREEN_DURATION 4000.0
+
+enum GAME_STATE
+{
+	GAME_INTRO_STATE,
+	GAME_TITLE_STATE,
+	GAME_PAUSED_STATE,
+	GAME_PLAY_STATE,
+	GAME_OVER_STATE,
+	GAME_HISCORE_STATE
+};
 
 int fireRate = 100; //milliseconds between shots. lower number is faster
 int bulletSpeed = 8; //pixels per click. higher number is faster
@@ -36,6 +47,7 @@ LTexture gBoxTexture;
 LTexture gEnergyTexture;
 LTexture gHalfEnergyTexture;
 LTexture gScoreTexture;
+LTexture gTitleTexture;
 
 Turret gTurret;
 Bullet bullets[MAX_BULLETS];
@@ -45,6 +57,10 @@ int damaged = 0; //ticks since last damage, controls the yellow flash
 int health = 10;
 int score = 0;
 SDL_Color scoreColor{255, 255, 255, 255};
+SDL_Color backgroundColor{0, 0, 0, 255};
+SDL_Color titleColor{255, 255, 255, 255};
+bool mute = false;
+GAME_STATE currentState;
 
 bool init();
 bool loadMedia();
@@ -53,17 +69,15 @@ void close();
 void createElements();
 bool handleInput(SDL_Event *e);
 void update();
+void updateTitleState();
+void updatePlayState();
 void render();
+void renderTitleState();
+void renderPlayState();
 void generateNewEnemy(int index);
 void renderHud();
 
-enum GAME_STATE
-{
-	GAME_INTRO_STATE,
-	GAME_PAUSED_STATE,
-	GAME_PLAY_STATE,
-	GAME_OVER_STATE
-};
+
 
 int main(int argc, char *argv[])
 {
@@ -83,12 +97,13 @@ int main(int argc, char *argv[])
         close();
         return 0;
     }
+    currentState = GAME_TITLE_STATE;
 
     createElements();
 
-    SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 20);
-    SDL_RenderClear(gRenderer);
-    SDL_RenderPresent(gRenderer);
+//    SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 20);
+//    SDL_RenderClear(gRenderer);
+//    SDL_RenderPresent(gRenderer);
 
     while(!quit)
 	{
@@ -170,32 +185,38 @@ bool init()
 
 bool loadMedia()
 {
-	if(!gTurretTexture.loadFromFile("assets/piskel turret.png"))
+//	if(!gTurretTexture.loadFromFile("assets/piskel turret.png"))
+	if(!gTurretTexture.loadFromFile("assets/turret2.png"))
 	{
 		printf("failed to load turret texture\n");
 		return false;
 	}
-	if(!gBulletTexture.loadFromFile("assets/piskel bullet.png"))
+//	if(!gBulletTexture.loadFromFile("assets/piskel bullet.png"))
+	if(!gBulletTexture.loadFromFile("assets/bullet2.png"))
 	{
 		printf("failed to load bullet texture\n");
 		return false;
 	}
-	if(!gEnemyTexture.loadFromFile("assets/piskel enemy.png"))
+//	if(!gEnemyTexture.loadFromFile("assets/piskel enemy.png"))
+	if(!gEnemyTexture.loadFromFile("assets/enemy2.png"))
 	{
 		printf("failed to load enemy texture\n");
 		return false;
 	}
-	if(!gBoxTexture.loadFromFile("assets/piskel box.png"))
+//	if(!gBoxTexture.loadFromFile("assets/piskel box.png"))
+	if(!gBoxTexture.loadFromFile("assets/box2.png"))
 	{
 		printf("failed to load box texture\n");
 		return false;
 	}
-	if(!gEnergyTexture.loadFromFile("assets/piskel energy.png"))
+//	if(!gEnergyTexture.loadFromFile("assets/piskel energy.png"))
+	if(!gEnergyTexture.loadFromFile("assets/energy2.png"))
 	{
 		printf("failed to load energy texture\n");
 		return false;
 	}
-	if(!gHalfEnergyTexture.loadFromFile("assets/piskel half energy.png"))
+//	if(!gHalfEnergyTexture.loadFromFile("assets/piskel half energy.png"))
+	if(!gHalfEnergyTexture.loadFromFile("assets/halfenergy2.png"))
 	{
 		printf("failed to load half energy texture\n");
 		return false;
@@ -211,6 +232,12 @@ bool loadMedia()
 	if(!gScoreTexture.loadFromRenderedText(gFont, "0", &scoreColor))
 	{
 		printf("failed to create score texture\n");
+		return false;
+	}
+
+	if(!gTitleTexture.loadFromRenderedText(gFont, "The Turret Button", &titleColor))
+	{
+		printf("failed to create title texture\n");
 		return false;
 	}
 
@@ -238,6 +265,8 @@ void close()
 	gEnemyTexture.free();
 	gBoxTexture.free();
 	gEnergyTexture.free();
+	gScoreTexture.free();
+	gTitleTexture.free();
 	SDL_DestroyWindow(gWindow);
 	SDL_DestroyRenderer(gRenderer);
 	Mix_FreeChunk(gGunSound);
@@ -278,6 +307,9 @@ bool handleInput(SDL_Event *e)
 //				printf("pressed space\n");
 				gTurret.stop();
 				break;
+			case SDLK_m:
+				mute = !mute;
+				break;
 			case SDLK_ESCAPE:
 				return true;
 		}
@@ -295,8 +327,20 @@ bool handleInput(SDL_Event *e)
 	return false;
 }
 
-
 void update()
+{
+	switch(currentState)
+	{
+		case GAME_TITLE_STATE:
+			updateTitleState();
+			break;
+		case GAME_PLAY_STATE:
+			updatePlayState();
+			break;
+	}
+}
+
+void updatePlayState()
 {
 	int createNewEnemy = -1;
 	int currentTime = SDL_GetTicks();
@@ -318,7 +362,10 @@ void update()
 		if((gTurret.getXPos() - enemies[i].getXPos()) * (gTurret.getXPos() - enemies[i].getXPos()) + (gTurret.getYPos() - enemies[i].getYPos()) * (gTurret.getYPos() - enemies[i].getYPos()) <= 1500)	//enemy reaches the player's turret
 		{
 			printf("enemy reached turret\n");
-			Mix_PlayChannel(-1, gEnemyDeath, 0);
+			if(!mute)
+			{
+				Mix_PlayChannel(-1, gEnemyDeath, 0);
+			}
 			health--;
 			damaged = 50;
 			generateNewEnemy(i);
@@ -340,7 +387,10 @@ void update()
 					score++;
 					sprintf(scoreString, "%d", score);
 					createNewEnemy = i;
-					Mix_PlayChannel(-1, gEnemyDeath, 0);
+					if(!mute)
+					{
+						Mix_PlayChannel(-1, gEnemyDeath, 0);
+					}
 					if(!gScoreTexture.loadFromRenderedText(gFont, scoreString, &scoreColor))
 					{
 						printf("failed to update score texture\n");
@@ -377,7 +427,10 @@ void update()
 				bullets[i].setVelocity(xVel, yVel);
 				bullets[i].setAlive(true);
 //				bullets[i].move();
-				Mix_PlayChannel(-1, gGunSound, 0);
+				if(!mute)
+				{
+					Mix_PlayChannel(-1, gGunSound, 0);
+				}
 				break;
 			}
 		}
@@ -391,9 +444,61 @@ void update()
 
 }
 
+void updateTitleState()
+{
+	if(SDL_GetTicks() >= TITLE_SCREEN_DURATION)
+	{
+		currentState = GAME_PLAY_STATE;
+		updatePlayState();
+	}
+}
+
 void render()
 {
-	SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 255);
+	switch(currentState)
+	{
+		case GAME_TITLE_STATE:
+			renderTitleState();
+			break;
+		case GAME_PLAY_STATE:
+			renderPlayState();
+			break;
+	}
+
+}
+
+void renderTitleState()
+{
+	int timeLapse = SDL_GetTicks();
+	int opacity;
+
+	SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
+    SDL_RenderClear(gRenderer);
+
+	gTitleTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, NULL);
+//	SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, opacity);
+//	SDL_RenderFillRect(gRenderer, NULL);
+	if(timeLapse < TITLE_SCREEN_DURATION / 2)
+	{
+		opacity = 255 - (255 * timeLapse / (TITLE_SCREEN_DURATION / 2));
+		SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, opacity);
+		SDL_RenderFillRect(gRenderer, NULL);
+	}
+	else
+	{
+		opacity = (255 * timeLapse / (TITLE_SCREEN_DURATION / 2) - 255);
+		SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, opacity);
+		SDL_RenderFillRect(gRenderer, NULL);
+	}
+	printf("current opacity %d\n", opacity);
+	SDL_RenderPresent(gRenderer);
+}
+
+void renderPlayState()
+{
+//	SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 255);
+//	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
     SDL_RenderClear(gRenderer);
 
     for(int i = 0; i < MAX_ENEMIES; i++)
@@ -419,7 +524,9 @@ void render()
 		SDL_SetRenderDrawColor(gRenderer, 255, 255, 0, (int)(255.0 * damaged / 50.0));
 //		SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 		SDL_RenderFillRect(gRenderer, NULL);
-		SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 255);
+//		SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 255);
+//		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
+		SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 	}
 
 	renderHud();
@@ -439,16 +546,16 @@ void generateNewEnemy(int index)
     switch(wall)
     {
 		case 0: //north wall
-			enemies[index].setPosition(SCREEN_WIDTH * (float)location / 10, 40);
+			enemies[index].setPosition(SCREEN_WIDTH * (float)location / 10, -40);
 			break;
 		case 1: //east wall
-			enemies[index].setPosition(SCREEN_WIDTH - 40, SCREEN_HEIGHT * (float)location / 10);
+			enemies[index].setPosition(SCREEN_WIDTH + 40, SCREEN_HEIGHT * (float)location / 10);
 			break;
 		case 2: //south wall
-			enemies[index].setPosition(SCREEN_WIDTH * (float)location / 10, SCREEN_HEIGHT - 40);
+			enemies[index].setPosition(SCREEN_WIDTH * (float)location / 10, SCREEN_HEIGHT + 40);
 			break;
 		case 3: //west wall
-			enemies[index].setPosition(40, SCREEN_HEIGHT * (float)location / 10);
+			enemies[index].setPosition(-40, SCREEN_HEIGHT * (float)location / 10);
 			break;
 	}
 	enemies[index].setAlive();
@@ -473,7 +580,7 @@ void renderHud()
 
 	SDL_RenderSetViewport(gRenderer, &scoreLocation);
 	gBoxTexture.render(NULL, NULL, 0);
-	gScoreTexture.render(scoreLocation.w / 2, scoreLocation.h / 2, NULL, NULL);
+	gScoreTexture.render(scoreLocation.w / 2, scoreLocation.h / 2, NULL, 0);
 
 
 
