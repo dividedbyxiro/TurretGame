@@ -402,13 +402,17 @@
 1524232593 source:c:\github repositories\turretgame\turretgame\src\turret.cpp
 	"Turret.h"
 
-1524686733 source:c:\development\github projects\turretgame\main.cpp
+1524857817 source:c:\development\github projects\turretgame\main.cpp
 	"LTexture.h"
 	"Turret.h"
 	"Bullet.h"
 	"Enemy.h"
+	"Timer.h"
 	<stdio.h>
+	<iostream>
 	<string>
+	<sstream>
+	<cstring>
 	<SDL.h>
 	<SDL_image.h>
 	<SDL_ttf.h>
@@ -417,31 +421,31 @@
 	<math.h>
 	<cstdlib>
 
-1524508200 c:\development\github projects\turretgame\include\ltexture.h
+1524754612 c:\development\github projects\turretgame\include\ltexture.h
 	<SDL.h>
 	<string>
 	<SDL_ttf.h>
 
-1524163439 c:\development\github projects\turretgame\include\turret.h
+1524857843 c:\development\github projects\turretgame\include\turret.h
 
 1524158612 c:\development\github projects\turretgame\include\bullet.h
 
 1524158612 source:c:\development\github projects\turretgame\src\bullet.cpp
 	"Bullet.h"
 
-1524167021 source:c:\development\github projects\turretgame\src\enemy.cpp
+1524858347 source:c:\development\github projects\turretgame\src\enemy.cpp
 	"Enemy.h"
 
-1524166911 c:\development\github projects\turretgame\include\enemy.h
+1524858269 c:\development\github projects\turretgame\include\enemy.h
 
-1524508200 source:c:\development\github projects\turretgame\src\ltexture.cpp
+1524754859 source:c:\development\github projects\turretgame\src\ltexture.cpp
 	"LTexture.h"
 	<SDL.h>
 	<SDL_image.h>
 	<string>
 	<stdio.h>
 
-1524167254 source:c:\development\github projects\turretgame\src\turret.cpp
+1524858121 source:c:\development\github projects\turretgame\src\turret.cpp
 	"Turret.h"
 
 1454366533 c:\mingw_dev_lib\include\sdl2\sdl_ttf.h
@@ -457,4 +461,10 @@
 	"SDL_version.h"
 	"begin_code.h"
 	"close_code.h"
+
+1524842930 source:c:\development\github projects\turretgame\src\timer.cpp
+	"Timer.h"
+	<SDL.h>
+
+1524842930 c:\development\github projects\turretgame\include\timer.h
 

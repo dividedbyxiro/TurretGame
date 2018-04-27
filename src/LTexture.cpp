@@ -118,3 +118,18 @@ void LTexture::render(SDL_Rect *source,  SDL_Rect *dest, double angle)
 
 	SDL_RenderCopyEx(gRenderer, texture, source, dest, angle, NULL, SDL_FLIP_NONE);
 }
+
+void LTexture::setColorMod(Uint8 r, Uint8 g, Uint8 b)
+{
+	SDL_SetTextureColorMod(texture, r, g, b);
+}
+
+void LTexture::setBlendMode(SDL_BlendMode blend)
+{
+	SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+}
+
+void LTexture::setAlphaMod(Uint8 a)
+{
+	SDL_SetTextureAlphaMod(texture, a);
+}

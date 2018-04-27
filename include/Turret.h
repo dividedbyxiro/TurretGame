@@ -11,19 +11,20 @@ class Turret
         void stop();
         void start();
         void setPosition(int x, int y);
+        void setDirection(int newDirection);
         int getXPos();
         int getYPos();
         int getAngle();
         int getWidth();
         int getHeight();
-
+        int getDirection();
     protected:
 
     private:
-        int angle;
+        double angle;
         int xPos;
         int yPos;
-        int direction;
+        double direction;
         bool stopped;
         int width;
         int height;

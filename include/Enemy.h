@@ -18,6 +18,8 @@ class Enemy
         bool getAlive();
         void setAlive();
         int getHealth();
+        void setSize(int newSize);
+        int getSize();
         bool damage(int amount);
 
     protected:
@@ -28,6 +30,7 @@ class Enemy
         double yPos;
         double xVel;
         double yVel;
+        int size;
         bool alive;
 };
 

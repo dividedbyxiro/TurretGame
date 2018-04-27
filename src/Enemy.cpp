@@ -87,3 +87,13 @@ bool Enemy::damage(int amount)
 	}
 	return false;
 }
+
+void Enemy::setSize(int newSize)
+{
+	size = newSize;
+}
+
+int Enemy::getSize()
+{
+	return size;
+}

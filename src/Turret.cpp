@@ -8,8 +8,6 @@ Turret::Turret()
 	width = 32;
 	height = 32;
 	stopped = false;
-	direction = 2;
-    //ctor
 }
 
 Turret::~Turret()
@@ -22,7 +20,7 @@ void Turret::move()
 	if(!stopped)
 	{
 		angle += direction;
-		angle %= 360;
+		//angle %= 360.0;
 	}
 }
 
@@ -70,4 +68,14 @@ int Turret::getWidth()
 int Turret::getHeight()
 {
 	return height;
+}
+
+void Turret::setDirection(int newDirection)
+{
+	direction = newDirection;
+}
+
+int Turret::getDirection()
+{
+	return direction;
 }
