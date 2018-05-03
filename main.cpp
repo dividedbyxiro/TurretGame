@@ -38,6 +38,7 @@ enum GAME_STATE
 	GAME_HISCORE_STATE
 };
 
+bool easyMode = true; //decreases gap between levels for testing purpose
 int fireRate = 100; //milliseconds between shots. lower number is faster
 int bulletSpeed = 8; //pixels per click. higher number is faster
 int gGunTimer = 0; //timer for firing gun. starts at 0
@@ -61,6 +62,7 @@ LTexture gTitleTexture;
 LTexture gLogoTexture;
 
 Turret gTurret;
+Turret gCursorTurret;
 Bullet bullets[MAX_BULLETS];
 Enemy enemies[MAX_ENEMIES];
 int enemyCount = 1;
@@ -87,12 +89,15 @@ void createElements();
 void handleInput(SDL_Event *e);
 void handleInputIntroState(SDL_Event *e);
 void handleInputPlayState(SDL_Event *e);
+void handleInputLevelupState(SDL_Event *e);
 void update();
 void updateIntroState();
 void updatePlayState();
+void updateLevelupState();
 void render();
 void renderIntroState();
 void renderPlayState();
+void renderLevelupState();
 void renderHud();
 void generateNewEnemy(int index);
 int getGameTime();
@@ -345,6 +350,9 @@ void handleInput(SDL_Event *e)
 	case GAME_PLAY_STATE:
 		handleInputPlayState(e);
 		break;
+	case GAME_LEVELUP_STATE:
+		handleInputLevelupState(e);
+		break;
 	}
 }
 
@@ -392,8 +400,37 @@ void handleInputPlayState(SDL_Event *e)
 	}
 }
 
+void handleInputLevelupState(SDL_Event *e)
+{
+	if(e->type == SDL_QUIT)
+	{
+		quit = true;
+		return;
+	}
+	if(titleTimer.getTicks() < 2000)
+	{
+		return;
+	}
+	if(e->type == SDL_KEYDOWN)
+	{
+		switch(e->key.keysym.sym)
+		{
+		case SDLK_SPACE:
+			titleTimer.stop();
+			currentState = GAME_PLAY_STATE;
+			currentState = GAME_PLAY_STATE;
+			printf("levelup timer done, re-entering playstate\n");
+			playTimer.unpause();
+			update();
+			gTurret.start();
+			break;
+		}
+	}
+}
+
 void update()
 {
+//	printf("entering update at state=%d\n", currentState);
 	switch(currentState)
 	{
 	case GAME_INTRO_STATE:
@@ -402,11 +439,15 @@ void update()
 	case GAME_PLAY_STATE:
 		updatePlayState();
 		break;
+	case GAME_LEVELUP_STATE:
+		updateLevelupState();
+		break;
 	}
 }
 
 void updatePlayState()
 {
+//	printf("entering updatePlayState\n");
 	int createNewEnemy = -1;
 	int currentTime = 0;
 	char timerString[8] = "00:00.0";
@@ -420,7 +461,6 @@ void updatePlayState()
 	gTimerTexture.loadFromRenderedText(gFont, timerString, &scoreColor);
 
 	gTurret.move();
-
 	for(int i = 0; i < MAX_BULLETS; i++)
 	{
 		bullets[i].move();
@@ -510,14 +550,19 @@ void updatePlayState()
 		}
 	}
 
-	if(score >= 2.5 * (currentLevel * currentLevel + currentLevel))
+	if((easyMode && score >= 3 * currentLevel) || (score >= 2.5 * (currentLevel * currentLevel + currentLevel)))
 	{
 		levelUp();
+		currentState = GAME_LEVELUP_STATE;
+		updateLevelupState();
+		return;
 	}
+
 	if(damaged > 0)
 	{
 		damaged--;
 	}
+//	printf("finished update play state\n");
 }
 
 void updateIntroState()
@@ -529,6 +574,15 @@ void updateIntroState()
 	}
 }
 
+void updateLevelupState()
+{
+	if(titleTimer.getTicks() > 3000)
+	{
+		gCursorTurret.move();
+	}
+
+}
+
 void render()
 {
 	switch(currentState)
@@ -538,6 +592,9 @@ void render()
 		break;
 	case GAME_PLAY_STATE:
 		renderPlayState();
+		break;
+	case GAME_LEVELUP_STATE:
+		renderLevelupState();
 		break;
 	}
 
@@ -590,9 +647,11 @@ void renderPlayState()
 {
 //	SDL_SetRenderDrawColor(gRenderer, 20, 20, 40, 255);
 //	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
+	printf("entering play render\n");
 	SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 	SDL_RenderClear(gRenderer);
 
+	printf("entering play render\n");
 	for(int i = 0; i < MAX_ENEMIES; i++)
 	{
 		if(enemies[i].getAlive())
@@ -623,6 +682,22 @@ void renderPlayState()
 
 	renderHud();
 
+	SDL_RenderPresent(gRenderer);
+}
+
+void renderLevelupState()
+{
+	SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
+	SDL_RenderClear(gRenderer);
+	if(titleTimer.getTicks() < 3000)
+	{
+		gTitleTexture.setAlphaMod(titleTimer.getTicks() / 3000.0 * 255);
+		gTitleTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
+	}
+	else
+	{
+		gTurretTexture.render(gCursorTurret.getXPos(), gCursorTurret.getYPos(), NULL, gCursorTurret.getAngle());
+	}
 	SDL_RenderPresent(gRenderer);
 }
 
@@ -709,4 +784,11 @@ void levelUp()
 	}
 	levelString << currentLevel;
 	gLevelTexture.loadFromRenderedText(gFont, levelString.str(), &scoreColor);
+	levelString << "Entering level " << currentLevel << ".";
+	gTitleTexture.loadFromRenderedText(gFont, levelString.str(), &titleColor);
+	gTitleTexture.setBlendMode(SDL_BLENDMODE_BLEND);
+	gCursorTurret.setDirection(.5);
+	gCursorTurret.setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT * 2 / 3);
+	titleTimer.start();
+	playTimer.pause();
 }

@@ -45,7 +45,7 @@ void Turret::setPosition(int x, int y)
 	yPos = y;
 }
 
-int Turret::getAngle()
+double Turret::getAngle()
 {
 	return angle;
 }
@@ -70,12 +70,12 @@ int Turret::getHeight()
 	return height;
 }
 
-void Turret::setDirection(int newDirection)
+void Turret::setDirection(double newDirection)
 {
 	direction = newDirection;
 }
 
-int Turret::getDirection()
+double Turret::getDirection()
 {
 	return direction;
 }
