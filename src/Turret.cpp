@@ -1,4 +1,5 @@
 #include "Turret.h"
+#include <cmath>
 
 Turret::Turret()
 {
@@ -20,6 +21,7 @@ void Turret::move()
 	if(!stopped)
 	{
 		angle += direction;
+		angle = std::fmod(angle, 360);
 		//angle %= 360.0;
 	}
 }

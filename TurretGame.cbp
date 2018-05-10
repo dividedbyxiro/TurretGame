@@ -43,12 +43,14 @@
 		<Unit filename="include/LTexture.h" />
 		<Unit filename="include/Timer.h" />
 		<Unit filename="include/Turret.h" />
+		<Unit filename="include/scoreTable.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/Bullet.cpp" />
 		<Unit filename="src/Enemy.cpp" />
 		<Unit filename="src/LTexture.cpp" />
 		<Unit filename="src/Timer.cpp" />
 		<Unit filename="src/Turret.cpp" />
+		<Unit filename="src/scoreTable.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

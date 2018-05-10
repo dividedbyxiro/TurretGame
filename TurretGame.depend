@@ -402,16 +402,16 @@
 1524232593 source:c:\github repositories\turretgame\turretgame\src\turret.cpp
 	"Turret.h"
 
-1525379671 source:c:\development\github projects\turretgame\main.cpp
+1525984802 source:c:\development\github projects\turretgame\main.cpp
 	"LTexture.h"
 	"Turret.h"
 	"Bullet.h"
 	"Enemy.h"
 	"Timer.h"
+	"scoreTable.h"
 	<stdio.h>
 	<iostream>
 	<string>
-	<sstream>
 	<cstring>
 	<SDL.h>
 	<SDL_image.h>
@@ -433,7 +433,7 @@
 1524158612 source:c:\development\github projects\turretgame\src\bullet.cpp
 	"Bullet.h"
 
-1524858347 source:c:\development\github projects\turretgame\src\enemy.cpp
+1525970937 source:c:\development\github projects\turretgame\src\enemy.cpp
 	"Enemy.h"
 
 1524858269 c:\development\github projects\turretgame\include\enemy.h
@@ -445,8 +445,9 @@
 	<string>
 	<stdio.h>
 
-1524858121 source:c:\development\github projects\turretgame\src\turret.cpp
+1525971156 source:c:\development\github projects\turretgame\src\turret.cpp
 	"Turret.h"
+	<cmath>
 
 1454366533 c:\mingw_dev_lib\include\sdl2\sdl_ttf.h
 	"SDL.h"
@@ -467,4 +468,13 @@
 	<SDL.h>
 
 1524842930 c:\development\github projects\turretgame\include\timer.h
+
+1525985047 source:c:\development\github projects\turretgame\src\scoretable.cpp
+	"scoreTable.h"
+	<SDL.h>
+	<stdio.h>
+
+1525984668 c:\development\github projects\turretgame\include\scoretable.h
+	<ctime>
+	<SDL.h>
 

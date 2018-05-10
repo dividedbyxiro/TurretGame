@@ -65,7 +65,7 @@ bool Enemy::getAlive()
 
 void Enemy::setAlive()
 {
-	health = 3;
+	health = 10;
 	alive = true;
 }
 
