@@ -63,9 +63,9 @@ bool Enemy::getAlive()
 	return alive;
 }
 
-void Enemy::setAlive()
+void Enemy::setAlive(int value)
 {
-	health = 10;
+	health = value;
 	alive = true;
 }
 

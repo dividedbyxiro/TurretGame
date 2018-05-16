@@ -26,6 +26,7 @@ using namespace std;
 #define ENEMY_SPEED 200 //milliseconds it takes for enemy to reach turret. smaller number is faster
 #define TURRET_SPEED 2.0
 #define MENU_TURRET_SPEED 1.0
+#define ENEMY_HEALTH 10 //default amount of health an enemy starts with
 
 enum GAME_STATE
 {
@@ -43,8 +44,9 @@ int fireRate = 100; //milliseconds between shots. lower number is faster
 int bulletSpeed = 8; //pixels per click. higher number is faster
 int bulletPower = 1; //damage inflicted by each bullet
 int gGunTimer = 0; //timer for firing gun. starts at 0
-int currentTurretSpeed = TURRET_SPEED;
-int currentEnemySpeed = ENEMY_SPEED;
+int currentTurretSpeed = TURRET_SPEED;	//current turret speed that may be modified by in-game powerups
+int currentEnemySpeed = ENEMY_SPEED;	//current enemy speed that may be modified by in-game powerups
+int currentEnemyHealth = ENEMY_HEALTH;	//amount of health new enemies start with, may be modified on higher levels
 
 SDL_Window *gWindow = NULL;
 SDL_Renderer *gRenderer = NULL;
@@ -58,10 +60,11 @@ LTexture gEnemyTexture;
 LTexture gBoxTexture;
 LTexture gEnergyTexture;
 LTexture gHalfEnergyTexture;
-LTexture gScoreTexture;
-LTexture gLevelTexture;
-LTexture gTimerTexture;
-LTexture gTitleTexture;
+LTexture gScoreTexture;	//text label to display score for HUD
+LTexture gLevelTexture;	//text label to display current level for HUD
+LTexture gTimerTexture;	//text label to display current time for HUD
+LTexture gLevelupTexture;	//text label to display what changes for next level. Also used temporarily to display title screen
+LTexture gLevelupTexture2;	//text label to display instruction for new levelup
 LTexture gLogoTexture;
 LTexture gPowerUpTexture;
 LTexture gPowerDownTexture;
@@ -159,21 +162,22 @@ int main(int argc, char *argv[])
 //		printf("finished render %d\n", SDL_GetTicks());
 		if(health <= 0)
 		{
-
+			if(scores.submitNewScore(0, score, playTimer.getTicks()))
+			{
+				printf("you made a new hi score\n");
+				scoreFile = SDL_RWFromFile("scores.xhs", "w+b");
+				scores.updateTableFile(scoreFile);
+				SDL_RWclose(scoreFile);
+				printf("thanks for playing\n");
+				printf("You earned %d points\n", score);
+			}
 			quit = true;
 		}
 	}
-	if(scores.submitNewScore(0, score, playTimer.getTicks()))
-	{
-		printf("you made a new hi score\n");
-	}
-	scoreFile = SDL_RWFromFile("scores.xhs", "w+b");
-	scores.updateTableFile(scoreFile);
-	SDL_RWclose(scoreFile);
+
+
 
 	close();
-	printf("thanks for playing\n");
-	printf("You earned %d points\n", score);
 	printf("hi scores:\n");
 	for(int i = 0; i < 10; i++)
 	{
@@ -307,7 +311,7 @@ bool loadMedia()
 		return false;
 	}
 
-	if(!gTitleTexture.loadFromRenderedText(gFont, "The Turret Button", &titleColor))
+	if(!gLevelupTexture.loadFromRenderedText(gFont, "The Turret Button", &titleColor))
 //	if(!gTitleTexture.loadFromFile("assets/dbx logo.png"))
 	{
 		printf("failed to create title texture\n");
@@ -375,7 +379,7 @@ void close()
 	gBoxTexture.free();
 	gEnergyTexture.free();
 	gScoreTexture.free();
-	gTitleTexture.free();
+	gLevelupTexture.free();
 	gLevelTexture.free();
 	gLogoTexture.free();
 	gTimerTexture.free();
@@ -483,7 +487,7 @@ void handleInputLevelupState(SDL_Event *e)
 	{
 		return;
 	}
-	if(e->type == SDL_KEYDOWN)
+	if(e->type == SDL_KEYDOWN && e->key.repeat == false)
 	{
 		switch(e->key.keysym.sym)
 		{
@@ -628,6 +632,7 @@ void updatePlayState()
 
 	if((easyMode && score >= 3 * currentLevel) || (score >= 2.5 * (currentLevel * currentLevel + currentLevel)))
 	{
+		playTimer.pause();
 		levelUp();
 		currentState = GAME_LEVELUP_STATE;
 		updateLevelupState();
@@ -688,14 +693,14 @@ void renderIntroState()
 //	SDL_RenderFillRect(gRenderer, NULL);
 	if(timeLapse < TITLE_SCREEN_DURATION / 2)
 	{
-		gTitleTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
+		gLevelupTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
 		opacity = 255 - (255 * timeLapse / (TITLE_SCREEN_DURATION / 2));
 		SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, opacity);
 		SDL_RenderFillRect(gRenderer, NULL);
 	}
 	else if(timeLapse < TITLE_SCREEN_DURATION)
 	{
-		gTitleTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
+		gLevelupTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
 		opacity = (255 * timeLapse / (TITLE_SCREEN_DURATION / 2) - 255);
 		SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, opacity);
 		SDL_RenderFillRect(gRenderer, NULL);
@@ -766,8 +771,8 @@ void renderLevelupState()
 	SDL_RenderClear(gRenderer);
 	if(titleTimer.getTicks() < 3000)
 	{
-		gTitleTexture.setAlphaMod(titleTimer.getTicks() / 3000.0 * 255);
-		gTitleTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
+		gLevelupTexture.setAlphaMod(titleTimer.getTicks() / 3000.0 * 255);
+		gLevelupTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
 	}
 	else
 	{
@@ -822,7 +827,7 @@ void generateNewEnemy(int index)
 		enemies[index].setPosition(-40, SCREEN_HEIGHT * (float)location / 10);
 		break;
 	}
-	enemies[index].setAlive();
+	enemies[index].setAlive(currentEnemyHealth);
 	enemies[index].setVelocity((gTurret.getXPos() - enemies[index].getXPos()) / (300 + velocityMod), (gTurret.getYPos() - enemies[index].getYPos()) / (300 + velocityMod));
 	enemies[index].setSize(32);
 }
@@ -872,19 +877,18 @@ void levelUp()
 {
 	char levelString[30];
 	currentLevel++;
-	printf("reached score %d, increasing level from %d to %d\n", score, currentLevel - 1, currentLevel);
+//	printf("reached score %d, increasing level from %d to %d\n", score, currentLevel - 1, currentLevel);
 	for(int i = 0; i < currentLevel && i < MAX_ENEMIES; i++)
 	{
-		printf("generated enemy %d of %d\n", i, currentLevel);
+//		printf("generated enemy %d of %d\n", i, currentLevel);
 		generateNewEnemy(i);
 	}
 	sprintf(levelString, "%d", currentLevel);
 	gLevelTexture.loadFromRenderedText(gFont, levelString, &scoreColor);
 	sprintf(levelString, "Entering level %d", currentLevel);
-	gTitleTexture.loadFromRenderedText(gFont, levelString, &titleColor);
-	gTitleTexture.setBlendMode(SDL_BLENDMODE_BLEND);
+	gLevelupTexture.loadFromRenderedText(gFont, levelString, &titleColor);
+	gLevelupTexture.setBlendMode(SDL_BLENDMODE_BLEND);
 	gCursorTurret.setDirection(.5);
 	gCursorTurret.setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT * 2 / 3);
 	titleTimer.start();
-	playTimer.pause();
 }

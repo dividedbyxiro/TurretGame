@@ -16,7 +16,7 @@ class Enemy
         void setVelocity(double x, double y);
         void setPosition(double x, double y);
         bool getAlive();
-        void setAlive();
+        void setAlive(int value);
         int getHealth();
         void setSize(int newSize);
         int getSize();
