@@ -18,10 +18,28 @@ void Bullet::move()
 	{
 		xPos += xVel;
 		yPos += yVel;
-
-		if(xPos < 0 || xPos > 640 || yPos < 0 || yPos > 480)
+		if(!ricochet)
 		{
-			alive = false;
+			if(xPos < 0 || xPos > 640 || yPos < 0 || yPos > 480)
+			{
+				alive = false;
+			}
+		}
+		else
+		{
+			if(xPos < 0 || xPos > 640)
+			{
+				xVel *= -1;
+				ricochet = false;
+				move();
+			}
+			if(yPos < 0 || yPos > 480)
+			{
+				yVel *= -1;
+				ricochet = false;
+				move();
+			}
+
 		}
 	}
 }
@@ -72,4 +90,9 @@ double Bullet::getYVel()
 bool Bullet::getAlive()
 {
 	return alive;
+}
+
+void Bullet::setRicochet(bool value)
+{
+	ricochet = value;
 }

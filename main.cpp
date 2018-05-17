@@ -23,7 +23,7 @@ using namespace std;
 #define MAX_BULLETS 30
 #define MAX_ENEMIES 10
 #define TITLE_SCREEN_DURATION 2000.0
-#define ENEMY_SPEED 200 //milliseconds it takes for enemy to reach turret. smaller number is faster
+#define ENEMY_SPEED 300 //milliseconds it takes for enemy to reach turret. smaller number is faster
 #define TURRET_SPEED 2.0
 #define MENU_TURRET_SPEED 1.0
 #define ENEMY_HEALTH 10 //default amount of health an enemy starts with
@@ -39,7 +39,8 @@ enum GAME_STATE
 	GAME_HISCORE_STATE
 };
 
-bool easyMode = false; //decreases gap between levels for testing purpose
+bool easyMode = true; //decreases gap between levels for testing purpose
+bool ricochetEnabled = true;	//whether player has unlocked ricochet powers. starts false
 int fireRate = 100; //milliseconds between shots. lower number is faster
 int bulletSpeed = 8; //pixels per click. higher number is faster
 int bulletPower = 1; //damage inflicted by each bullet
@@ -70,6 +71,15 @@ LTexture gPowerUpTexture;
 LTexture gPowerDownTexture;
 LTexture gSpeedUpTexture;
 LTexture gSpeedDownTexture;
+LTexture gDamageTexture;
+LTexture gEnemySpeedDownTexture;
+LTexture gEnemySpeedUpTexture;
+LTexture gFireRateDownTexture;
+LTexture gFireRateUpTexture;
+LTexture gFullHealTexture;
+LTexture gRicochetPowersTexture;
+LTexture *levelupChoice1 = NULL;	//which levelup choice will appear on left
+LTexture *levelupChoice2 = NULL;	//which levelup choice will appear on right
 
 Turret gTurret;
 Turret gCursorTurret;
@@ -353,6 +363,49 @@ bool loadMedia()
 		return false;
 	}
 
+	if(!gDamageTexture.loadFromFile("assets/damage.png"))
+	{
+		printf("failed to load damage texture\n");
+		return false;
+	}
+
+	if(!gEnemySpeedDownTexture.loadFromFile("assets/enemySpeedDown.png"))
+	{
+		printf("failed to load enemyspeeddown texture\n");
+		return false;
+	}
+
+	if(!gEnemySpeedUpTexture.loadFromFile("assets/enemySpeedUp.png"))
+	{
+		printf("failed to load enemyspeedup texture\n");
+		return false;
+	}
+
+	if(!gFireRateDownTexture.loadFromFile("assets/fireRateDown.png"))
+	{
+		printf("failed to load fireRateDown texture\n");
+		return false;
+	}
+
+	if(!gFireRateUpTexture.loadFromFile("assets/fireRateUp.png"))
+	{
+		printf("failed to load fireRateUp texture\n");
+		return false;
+	}
+
+	if(!gFullHealTexture.loadFromFile("assets/fullHeal.png"))
+	{
+		printf("failed to load fullHeal texture\n");
+		return false;
+	}
+
+	if(!gRicochetPowersTexture.loadFromFile("assets/ricochet.png"))
+	{
+		printf("failed to load ricochet powers texture\n");
+		return false;
+	}
+
+
 	gGunSound = Mix_LoadWAV("assets/low.wav");
 	if(gGunSound == NULL)
 	{
@@ -380,6 +433,7 @@ void close()
 	gEnergyTexture.free();
 	gScoreTexture.free();
 	gLevelupTexture.free();
+	gLevelupTexture2.free();
 	gLevelTexture.free();
 	gLogoTexture.free();
 	gTimerTexture.free();
@@ -387,6 +441,15 @@ void close()
 	gPowerUpTexture.free();
 	gSpeedDownTexture.free();
 	gSpeedUpTexture.free();
+	gDamageTexture.free();
+	gEnemySpeedDownTexture.free();
+	gEnemySpeedUpTexture.free();
+	gFireRateDownTexture.free();
+	gFireRateUpTexture.free();
+	gFullHealTexture.free();
+	gRicochetPowersTexture.free();
+	levelupChoice1 = NULL;	//which levelup choice will appear on left
+	levelupChoice2 = NULL;	//which levelup choice will appear on right
 //	SDL_RWclose(scoreFile);
 	SDL_DestroyWindow(gWindow);
 	SDL_DestroyRenderer(gRenderer);
@@ -495,13 +558,35 @@ void handleInputLevelupState(SDL_Event *e)
 			titleTimer.stop();
 			currentState = GAME_PLAY_STATE;
 			currentState = GAME_PLAY_STATE;
-			if(gCursorTurret.getAngle() < 180)
+			if(gCursorTurret.getAngle() < 180)		//choose option on right
 			{
-				bulletPower++;
+				switch(currentLevel)
+				{
+					case 2:
+					case 3:
+						bulletPower++;
+						break;
+					case 4:
+						currentEnemySpeed -= 40;
+						break;
+					default:
+						break;
+				}
 			}
-			else
+			else		//choose option on left
 			{
-				gTurret.setDirection(gTurret.getDirection() * 1.1);
+				switch(currentLevel)
+				{
+					case 2:
+					case 3:
+						gTurret.setDirection(gTurret.getDirection() * 1.1);
+						break;
+					case 4:
+						health -= 2;
+						break;
+					default:
+						break;
+				}
 			}
 //			printf("levelup timer done, re-entering playstate\n");
 			playTimer.unpause();
@@ -620,6 +705,7 @@ void updatePlayState()
 				bullets[i].setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 				bullets[i].setVelocity(xVel, yVel);
 				bullets[i].setAlive(true);
+				bullets[i].setRicochet(ricochetEnabled);
 //				bullets[i].move();
 				if(!mute)
 				{
@@ -769,17 +855,22 @@ void renderLevelupState()
 {
 	SDL_SetRenderDrawColor(gRenderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 	SDL_RenderClear(gRenderer);
-	if(titleTimer.getTicks() < 3000)
+	if(titleTimer.getTicks() <= 1500)
 	{
-		gLevelupTexture.setAlphaMod(titleTimer.getTicks() / 3000.0 * 255);
+		gLevelupTexture.setAlphaMod(titleTimer.getTicks() / 1500.0 * 255);
 		gLevelupTexture.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
+	}
+	else if(titleTimer.getTicks() < 3000)
+	{
+		gLevelupTexture2.setAlphaMod((titleTimer.getTicks() / 1500.0 - 1.0) * 255);
+		gLevelupTexture2.render(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, NULL, 0);
 	}
 	else
 	{
 		SDL_Rect highlighter;
 		gTurretTexture.render(gCursorTurret.getXPos(), gCursorTurret.getYPos(), NULL, gCursorTurret.getAngle());
-		gPowerUpTexture.render(gCursorTurret.getXPos() + 100, gCursorTurret.getYPos(), NULL, 0);
-		gSpeedUpTexture.render(gCursorTurret.getXPos() - 100, gCursorTurret.getYPos(), NULL, 0);
+		levelupChoice2->render(gCursorTurret.getXPos() + 100, gCursorTurret.getYPos(), NULL, 0);
+		levelupChoice1->render(gCursorTurret.getXPos() - 100, gCursorTurret.getYPos(), NULL, 0);
 		if(gCursorTurret.getAngle() < 180)
 		{
 			highlighter.h = gPowerUpTexture.getHeight();
@@ -828,7 +919,7 @@ void generateNewEnemy(int index)
 		break;
 	}
 	enemies[index].setAlive(currentEnemyHealth);
-	enemies[index].setVelocity((gTurret.getXPos() - enemies[index].getXPos()) / (300 + velocityMod), (gTurret.getYPos() - enemies[index].getYPos()) / (300 + velocityMod));
+	enemies[index].setVelocity((gTurret.getXPos() - enemies[index].getXPos()) / (currentEnemySpeed + velocityMod), (gTurret.getYPos() - enemies[index].getYPos()) / (currentEnemySpeed + velocityMod));
 	enemies[index].setSize(32);
 }
 
@@ -888,7 +979,30 @@ void levelUp()
 	sprintf(levelString, "Entering level %d", currentLevel);
 	gLevelupTexture.loadFromRenderedText(gFont, levelString, &titleColor);
 	gLevelupTexture.setBlendMode(SDL_BLENDMODE_BLEND);
-	gCursorTurret.setDirection(.5);
+	switch(currentLevel)
+	{
+		case 2:
+			gLevelupTexture2.loadFromRenderedText(gFont, "More enemies. Faster Enemies.", &titleColor);
+			currentEnemyHealth += 2;
+			currentEnemySpeed -= 20;
+			levelupChoice1 = &gSpeedUpTexture;
+			levelupChoice2 = &gPowerUpTexture;
+			break;
+		case 3:
+			gLevelupTexture2.loadFromRenderedText(gFont, "Even more enemies. Faster still.", &titleColor);
+			currentEnemyHealth += 3;
+			currentEnemySpeed -= 20;
+			levelupChoice1 = &gSpeedUpTexture;
+			levelupChoice2 = &gPowerUpTexture;
+			break;
+		case 4:
+			gLevelupTexture2.loadFromRenderedText(gFont, "Choose your poison!", &titleColor);
+			levelupChoice1 = &gDamageTexture;
+			levelupChoice2 = &gEnemySpeedUpTexture;
+		default:
+			break;
+	}
+	gCursorTurret.setDirection(1);
 	gCursorTurret.setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT * 2 / 3);
 	titleTimer.start();
 }

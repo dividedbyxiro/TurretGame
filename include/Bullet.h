@@ -17,6 +17,7 @@ class Bullet
         void setPosition(double x, double y);
         bool getAlive();
         void setAlive(bool instruction);
+        void setRicochet(bool value);
 
     protected:
 
@@ -26,6 +27,7 @@ class Bullet
         double xVel;
         double yVel;
         bool alive;
+        bool ricochet;
 };
 
 #endif // BULLET_H
