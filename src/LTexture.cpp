@@ -10,6 +10,7 @@ LTexture::LTexture()
 {
     texture = NULL;
     width = height = 0;
+    frameCount = 0;
     //ctor
 }
 
@@ -53,6 +54,7 @@ bool LTexture::loadFromFile(std::string path)
     height = loadedSurface->h;
     SDL_FreeSurface(loadedSurface);
     texture = loadedTexture;
+    frameCount = 1;
     return true;
 }
 
@@ -79,12 +81,13 @@ bool LTexture::loadFromRenderedText(TTF_Font *font, std::string text, SDL_Color 
     height = loadedSurface->h;
     SDL_FreeSurface(loadedSurface);
     texture = loadedTexture;
+    frameCount = 1;
     return true;
 }
 
 int LTexture::getWidth()
 {
-    return width;
+    return width / frameCount;
 }
 
 int LTexture::getHeight()
@@ -92,23 +95,20 @@ int LTexture::getHeight()
     return height;
 }
 
-void LTexture::render(int x, int y, SDL_Rect *source, double angle)
+void LTexture::render(int x, int y, int frame, double angle)
 {
-	SDL_Rect dest{x - width / 2, y - height / 2, width, height};
-	if(source != NULL)
-	{
-		dest.w = source->w;
-		dest.h = source->h;
-		dest.x -= dest.w / 2;
-		dest.y -= dest.h / 2;
-	}
+    if(frame < 0)
+    {
+        frame = 0;
+    }
+    if(frame >= frameCount)
+    {
+        frame = frameCount - 1;
+    }
 
-	SDL_RenderCopyEx(gRenderer, texture, source, &dest, angle, NULL, SDL_FLIP_NONE);
-}
-
-void LTexture::render(SDL_Rect *source,  SDL_Rect *dest, double angle)
-{
-//	if(source != NULL)
+	SDL_Rect dest{x - getWidth() / 2, y - height / 2, getWidth(), height};
+	SDL_Rect source{frame * getWidth(), 0, getWidth(), height};
+//	if(frameCount == 1)
 //	{
 //		dest.w = source->w;
 //		dest.h = source->h;
@@ -116,7 +116,28 @@ void LTexture::render(SDL_Rect *source,  SDL_Rect *dest, double angle)
 //		dest.y -= dest.h / 2;
 //	}
 
-	SDL_RenderCopyEx(gRenderer, texture, source, dest, angle, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(gRenderer, texture, &source, &dest, angle, NULL, SDL_FLIP_NONE);
+}
+
+void LTexture::render(int frame, SDL_Rect *dest, double angle)
+{
+    if(frame < 0)
+    {
+        frame = 0;
+    }
+    if(frame >= frameCount)
+    {
+        frame = frameCount - 1;
+    }
+//	if(source != NULL)
+//	{
+//		dest.w = source->w;
+//		dest.h = source->h;
+//		dest.x -= dest.w / 2;
+//		dest.y -= dest.h / 2;
+//	}
+    SDL_Rect source{frame * getWidth(), 0, getWidth(), height};
+	SDL_RenderCopyEx(gRenderer, texture, &source, dest, angle, NULL, SDL_FLIP_NONE);
 }
 
 void LTexture::setColorMod(Uint8 r, Uint8 g, Uint8 b)
@@ -132,4 +153,14 @@ void LTexture::setBlendMode(SDL_BlendMode blend)
 void LTexture::setAlphaMod(Uint8 a)
 {
 	SDL_SetTextureAlphaMod(texture, a);
+}
+
+void LTexture::setFrameCount(int value)
+{
+    frameCount = value;
+}
+
+int LTexture::getFrameCount()
+{
+    return frameCount;
 }

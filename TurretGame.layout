@@ -2,19 +2,46 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Debug" />
-	<File name="include\Bullet.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\Enemy.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="468" topLine="0" />
+			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="include\Timer.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="main.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="44" topLine="0" />
+			<Cursor1 position="29868" topLine="160" />
 		</Cursor>
+		<Folding>
+			<Collapse line="159" />
+			<Collapse line="223" />
+			<Collapse line="291" />
+			<Collapse line="471" />
+			<Collapse line="514" />
+			<Collapse line="543" />
+			<Collapse line="565" />
+			<Collapse line="570" />
+			<Collapse line="613" />
+			<Collapse line="671" />
+			<Collapse line="689" />
+			<Collapse line="706" />
+			<Collapse line="729" />
+			<Collapse line="854" />
+			<Collapse line="863" />
+			<Collapse line="872" />
+			<Collapse line="877" />
+			<Collapse line="885" />
+			<Collapse line="908" />
+			<Collapse line="951" />
+			<Collapse line="992" />
+			<Collapse line="1034" />
+			<Collapse line="1049" />
+			<Collapse line="1082" />
+			<Collapse line="1146" />
+		</Folding>
 	</File>
-	<File name="src\Turret.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="include\scoreTable.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="37" topLine="0" />
+			<Cursor1 position="334" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="src\Timer.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -22,9 +49,30 @@
 			<Cursor1 position="1215" topLine="36" />
 		</Cursor>
 	</File>
-	<File name="include\Turret.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\Turret.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="551" topLine="0" />
+			<Cursor1 position="37" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include\Bullet.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="468" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="src\LTexture.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2962" topLine="57" />
+		</Cursor>
+		<Folding>
+			<Collapse line="23" />
+			<Collapse line="34" />
+			<Collapse line="61" />
+			<Collapse line="93" />
+		</Folding>
+	</File>
+	<File name="include\Timer.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="44" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="include\Enemy.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -32,56 +80,19 @@
 			<Cursor1 position="415" topLine="6" />
 		</Cursor>
 	</File>
-	<File name="include\LTexture.h" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="include\Turret.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="583" topLine="4" />
+			<Cursor1 position="551" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="include\LTexture.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="576" topLine="4" />
 		</Cursor>
 	</File>
 	<File name="src\Bullet.cpp" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="494" topLine="18" />
-		</Cursor>
-	</File>
-	<File name="include\scoreTable.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="334" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="src\Enemy.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="724" topLine="18" />
-		</Cursor>
-	</File>
-	<File name="main.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="13070" topLine="208" />
-		</Cursor>
-		<Folding>
-			<Collapse line="158" />
-			<Collapse line="217" />
-			<Collapse line="285" />
-			<Collapse line="535" />
-			<Collapse line="557" />
-			<Collapse line="562" />
-			<Collapse line="605" />
-			<Collapse line="663" />
-			<Collapse line="846" />
-			<Collapse line="855" />
-			<Collapse line="864" />
-			<Collapse line="900" />
-			<Collapse line="943" />
-			<Collapse line="985" />
-			<Collapse line="1027" />
-			<Collapse line="1042" />
-			<Collapse line="1075" />
-			<Collapse line="1105" />
-			<Collapse line="1139" />
-			<Collapse line="1194" />
-		</Folding>
-	</File>
-	<File name="src\LTexture.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3070" topLine="21" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
