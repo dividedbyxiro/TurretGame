@@ -18,6 +18,7 @@ class Turret
         int getWidth();
         int getHeight();
         double getDirection();
+        bool isStopped();
     protected:
 
     private:

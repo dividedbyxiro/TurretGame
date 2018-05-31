@@ -91,6 +91,7 @@ Enemy enemies[MAX_ENEMIES];
 
 bool easyMode = false;			//decreases gap between levels for testing purpose
 bool ricochetEnabled = false;	//whether player has unlocked ricochet powers. starts false
+bool autofireEnabled = false;	//whether player has unlocked autofire powers. starts false
 bool mute = true;
 int bulletSpeed = 8; //pixels per click. higher number is faster
 int currentFireRate = FIRE_RATE;				//milliseconds between shots. May be modified by in-game power-ups
@@ -526,6 +527,8 @@ void createElements()
 	currentTurretSpeed = TURRET_SPEED;
 	currentEnemySpeed = ENEMY_SPEED;
 	currentEnemyHealth = ENEMY_HEALTH;
+	autofireEnabled = false;
+	ricochetEnabled = false;
 	enemyCount = 1;
 	health = 10;
 	score = 0;
@@ -574,7 +577,7 @@ void handleInputPlayState(SDL_Event *e)
 		quit = true;
 		return;
 	}
-	if(e->type == SDL_KEYDOWN)
+	if(e->type == SDL_KEYDOWN && e->key.repeat == false)
 	{
 		switch(e->key.keysym.sym)
 		{
@@ -810,7 +813,7 @@ void updatePlayState()
 		generateNewEnemy(createNewEnemy);
 	}
 
-	if(gunTimer.getTicks() >= currentFireRate)	//time to fire the gun again
+	if(gunTimer.getTicks() >= currentFireRate && (gTurret.isStopped() || autofireEnabled))	//time to fire the gun again
 	{
 //		printf("    time to fire\n");
 		gunTimer.start();

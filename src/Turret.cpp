@@ -81,3 +81,8 @@ double Turret::getDirection()
 {
 	return direction;
 }
+
+bool Turret::isStopped()
+{
+	return stopped;
+}
