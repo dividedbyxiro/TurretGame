@@ -18,9 +18,11 @@ class Enemy
         bool getAlive();
         void setAlive(int value);
         int getHealth();
-        void setSize(int newSize);
-        int getSize();
+        int getSize();  /**< returns radius determined by type */
         bool damage(int amount);
+        int getState();
+        void setType(int value);
+        int getType();
 
     protected:
 
@@ -30,8 +32,9 @@ class Enemy
         double yPos;
         double xVel;
         double yVel;
-        int size;
         bool alive;
+        int state;      //time since damaged, controls which sprite is rendered
+        int type;
 };
 
 #endif // ENEMY_H

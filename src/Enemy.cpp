@@ -17,6 +17,7 @@ void Enemy::move()
 	{
 		xPos += xVel;
 		yPos += yVel;
+		state--;
 	}
 }
 
@@ -84,16 +85,55 @@ bool Enemy::damage(int amount)
 			kill();
 			return true;
 		}
+		state = 12;
+		xPos -= xVel * 10;
+		yPos -= yVel * 10;
 	}
 	return false;
 }
 
-void Enemy::setSize(int newSize)
-{
-	size = newSize;
-}
-
 int Enemy::getSize()
 {
-	return size;
+	switch(type)
+	{
+	case 1:
+	case 2:
+	case 3:
+		return 32;
+	case 4:
+		return 16;
+	case 5:
+		return 48;
+	default:
+		return 0;
+
+	}
+	return 0;
+}
+
+int Enemy::getState()
+{
+	if(state < 0)
+	{
+		return 0;
+	}
+	return state / 4;
+}
+
+void Enemy::setType(int value)
+{
+	if(value > 5)
+	{
+		value = 5;
+	}
+	else if(value < 1)
+	{
+		value = 1;
+	}
+	type = value;
+}
+
+int Enemy::getType()
+{
+	return type;
 }

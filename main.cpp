@@ -53,8 +53,12 @@ Mix_Chunk *gGunSound = NULL;
 Mix_Chunk *gEnemyDeath = NULL;
 
 LTexture gTurretTexture;
-LTexture gBulletTexture;
-LTexture gEnemyTexture;
+LTexture gBulletSheet;
+LTexture gEnemy1Sheet;
+LTexture gEnemy2Sheet;
+LTexture gEnemy3Sheet;
+LTexture gEnemy4Sheet;
+LTexture gEnemy5Sheet;
 LTexture gBoxTexture;
 LTexture gEnergyTexture;
 LTexture gHalfEnergyTexture;
@@ -104,6 +108,7 @@ int damaged = 0; //ticks since last damage, controls the yellow flash
 int health = 10;
 int score = 0;
 int currentLevel = 0;
+int bulletMode = 0;
 bool quit;
 GAME_STATE currentState;
 char timerString[8];	//string used to hold formatted timer
@@ -299,18 +304,49 @@ bool loadMedia()
 	}
 	gTurretTexture.setFrameCount(8);
 
-//	if(!gBulletTexture.loadFromFile("assets/piskel bullet.png"))
-	if(!gBulletTexture.loadFromFile("assets/bullet2.png"))
+	if(!gBulletSheet.loadFromFile("assets/bulletsheet.png"))
 	{
-		printf("failed to load bullet texture\n");
+		printf("failed to load bullet sheet\n");
 		return false;
 	}
+	gBulletSheet.setFrameCount(5);
+
 //	if(!gEnemyTexture.loadFromFile("assets/piskel enemy.png"))
-	if(!gEnemyTexture.loadFromFile("assets/enemy2.png"))
+	if(!gEnemy1Sheet.loadFromFile("assets/enemy1sheet.png"))
 	{
-		printf("failed to load enemy texture\n");
+		printf("failed to load enemy1 sheet\n");
 		return false;
 	}
+	gEnemy1Sheet.setFrameCount(3);
+
+	if(!gEnemy2Sheet.loadFromFile("assets/enemy2sheet.png"))
+	{
+		printf("failed to load enemy2 sheet\n");
+		return false;
+	}
+	gEnemy2Sheet.setFrameCount(3);
+
+	if(!gEnemy3Sheet.loadFromFile("assets/enemy3sheet.png"))
+	{
+		printf("failed to load enemy3 sheet\n");
+		return false;
+	}
+	gEnemy3Sheet.setFrameCount(3);
+
+	if(!gEnemy4Sheet.loadFromFile("assets/enemy4sheet.png"))
+	{
+		printf("failed to load enemy4 sheet\n");
+		return false;
+	}
+	gEnemy4Sheet.setFrameCount(3);
+
+	if(!gEnemy5Sheet.loadFromFile("assets/enemy5sheet.png"))
+	{
+		printf("failed to load enemy5 sheet\n");
+		return false;
+	}
+	gEnemy5Sheet.setFrameCount(3);
+
 //	if(!gBoxTexture.loadFromFile("assets/piskel box.png"))
 	if(!gBoxTexture.loadFromFile("assets/box2.png"))
 	{
@@ -472,8 +508,8 @@ bool loadMedia()
 void close()
 {
 	gTurretTexture.free();
-	gBulletTexture.free();
-	gEnemyTexture.free();
+	gBulletSheet.free();
+	gEnemy1Sheet.free();
 	gBoxTexture.free();
 	gEnergyTexture.free();
 	gScoreTexture.free();
@@ -532,6 +568,7 @@ void createElements()
 	enemyCount = 1;
 	health = 10;
 	score = 0;
+	bulletMode = 0;
 	currentLevel = 0;
 	for(int i = 0; i < MAX_ENEMIES; i++)
 	{
@@ -541,6 +578,17 @@ void createElements()
 	srand(SDL_GetTicks());
 	generateNewEnemy(0);
 	currentLevel = 1;
+
+	if(!gLevelTexture.loadFromRenderedText(gFont, "1", &scoreColor))
+	{
+		printf("failed to reset level texture\n");
+	}
+	if(!gScoreTexture.loadFromRenderedText(gFont, "0", &scoreColor))
+	{
+		printf("failed to reset score texture\n");
+	}
+
+
 }
 
 void handleInput(SDL_Event *e)
@@ -639,6 +687,7 @@ void handleInputLevelupState(SDL_Event *e)
 					case 2:
 					case 3:
 						bulletPower++;
+						bulletMode++;
 						break;
 					case 4:
 						currentEnemySpeed -= 40;
@@ -691,7 +740,7 @@ void handleInputPausedState(SDL_Event *e)
 
 void handleInputGameoverState(SDL_Event *e)
 {
-	if(e->type == SDL_KEYDOWN && e->key.repeat == false && e->key.keysym.sym == SDLK_SPACE)
+	if(e->type == SDL_KEYDOWN && e->key.repeat == false && e->key.keysym.sym == SDLK_SPACE && titleTimer.getTicks() > 5000)
 	{
 		if(gCursorTurret.getAngle() < 180)
 		{
@@ -964,7 +1013,24 @@ void renderPlayState()
 	{
 		if(enemies[i].getAlive())
 		{
-			gEnemyTexture.render(enemies[i].getXPos(), enemies[i].getYPos(), 0, 0);
+			switch(enemies[i].getType())
+			{
+			case 1:
+				gEnemy1Sheet.render(enemies[i].getXPos(), enemies[i].getYPos(), enemies[i].getState(), enemies[i].getXPos() < SCREEN_WIDTH / 2 ? enemies[i].getState() * -5 : enemies[i].getState() * 5);
+				break;
+			case 2:
+				gEnemy2Sheet.render(enemies[i].getXPos(), enemies[i].getYPos(), enemies[i].getState(), enemies[i].getXPos() < SCREEN_WIDTH / 2 ? enemies[i].getState() * -5 : enemies[i].getState() * 5);
+				break;
+			case 3:
+				gEnemy3Sheet.render(enemies[i].getXPos(), enemies[i].getYPos(), enemies[i].getState(), enemies[i].getXPos() < SCREEN_WIDTH / 2 ? enemies[i].getState() * -5 : enemies[i].getState() * 5);
+				break;
+			case 4:
+				gEnemy4Sheet.render(enemies[i].getXPos(), enemies[i].getYPos(), enemies[i].getState(), enemies[i].getXPos() < SCREEN_WIDTH / 2 ? enemies[i].getState() * -5 : enemies[i].getState() * 5);
+				break;
+			case 5:
+				gEnemy5Sheet.render(enemies[i].getXPos(), enemies[i].getYPos(), enemies[i].getState(), enemies[i].getXPos() < SCREEN_WIDTH / 2 ? enemies[i].getState() * -5 : enemies[i].getState() * 5);
+				break;
+			}
 		}
 	}
 
@@ -972,7 +1038,7 @@ void renderPlayState()
 	{
 		if(bullets[i].getAlive())
 		{
-			gBulletTexture.render(bullets[i].getXPos(), bullets[i].getYPos(), 0, 0);
+			gBulletSheet.render(bullets[i].getXPos(), bullets[i].getYPos(), bulletMode, 0);
 		}
 	}
 	gTurretTexture.render(gTurret.getXPos(), gTurret.getYPos(), gTurretTexture.getFrameCount() * gunTimer.getTicks() / currentFireRate, gTurret.getAngle());
@@ -1089,27 +1155,32 @@ void generateNewEnemy(int index)
 		return;
 	}
 
-	int wall = rand() % 4;
-	int location = rand() % 9 + 1;
-	int velocityMod = rand() % 100;
-	switch(wall)
+//	int wall = rand() % 4;
+//	int location = rand() % 9 + 1;
+//	int velocityMod = rand() % 100;
+	int enemySeed = rand();
+	switch(enemySeed % 4)
 	{
 	case 0: //north wall
-		enemies[index].setPosition(SCREEN_WIDTH * (float)location / 10, -40);
+		enemies[index].setPosition(SCREEN_WIDTH * (float)(enemySeed % 9) / 10, -40);
 		break;
 	case 1: //east wall
-		enemies[index].setPosition(SCREEN_WIDTH + 40, SCREEN_HEIGHT * (float)location / 10);
+		enemies[index].setPosition(SCREEN_WIDTH + 40, SCREEN_HEIGHT * (float)(enemySeed & 9) / 10);
 		break;
 	case 2: //south wall
-		enemies[index].setPosition(SCREEN_WIDTH * (float)location / 10, SCREEN_HEIGHT + 40);
+		enemies[index].setPosition(SCREEN_WIDTH * (float)(enemySeed % 9) / 10, SCREEN_HEIGHT + 40);
 		break;
 	case 3: //west wall
-		enemies[index].setPosition(-40, SCREEN_HEIGHT * (float)location / 10);
+		enemies[index].setPosition(-40, SCREEN_HEIGHT * (float)(enemySeed % 9) / 10);
 		break;
 	}
+
+	enemies[index].setType(enemySeed % ((currentLevel - 1) / 2 + 1) + 1);
 	enemies[index].setAlive(currentEnemyHealth);
-	enemies[index].setVelocity((gTurret.getXPos() - enemies[index].getXPos()) / (currentEnemySpeed + velocityMod), (gTurret.getYPos() - enemies[index].getYPos()) / (currentEnemySpeed + velocityMod));
-	enemies[index].setSize(32);
+	enemies[index].setVelocity((gTurret.getXPos() - enemies[index].getXPos()) / (currentEnemySpeed + enemySeed % 100), (gTurret.getYPos() - enemies[index].getYPos()) / (currentEnemySpeed + enemySeed % 100));
+	printf("enemyseed %d currentlevel %d\n", enemySeed, currentLevel);
+	printf("ran setType(%d)\n", enemySeed % ((currentLevel - 1) / 2 + 1));
+	printf("created enemy type %d\n", enemies[index].getType());
 }
 
 void renderHud()

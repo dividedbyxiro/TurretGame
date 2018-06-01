@@ -28,6 +28,7 @@ void LTexture::free()
     }
 
     SDL_DestroyTexture(texture);
+    texture = NULL;
     width = height = 0;
 }
 
